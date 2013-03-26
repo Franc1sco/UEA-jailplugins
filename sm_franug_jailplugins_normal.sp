@@ -519,9 +519,6 @@ public OnPluginStart()
 	InicioAR();	
 	// Creating DB...
 	//InitDB();
-
-	//AutoExecConfig(true, "sm_jailespecial_renew");
-	
 }
 
 public OnClientPutInServer(client)
