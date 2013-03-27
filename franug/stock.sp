@@ -72,6 +72,7 @@ public Action:DescongelarCliente(Handle:timer, any:client)
 	}
 }
 
+// Santa Claus
 stock bool:makeexplosion(attacker = 0, inflictor = -1, const Float:attackposition[3], const String:weaponname[] = "", magnitude = 800, radiusoverride = 0, Float:damageforce = 0.0, flags = 0){
 	
 	new explosion = CreateEntityByName("env_explosion");
