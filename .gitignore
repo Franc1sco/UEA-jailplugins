@@ -2,4 +2,6 @@
 *.lnk
 *.sh
 *.zip
+PawnStudio/*
+include/*
 jailplugins.gamedata.txt
