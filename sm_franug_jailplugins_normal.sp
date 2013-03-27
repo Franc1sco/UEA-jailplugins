@@ -3993,6 +3993,11 @@ public Action:PlayerFootstep(Handle:event, const String:name[], bool:dontBroadca
 
 public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damagetype)
 {
+	// Anular daño por caidas a Batman
+	if (damagetype & DMG_FALL)
+		if (g_Batman[victim])
+			return Plugin_Handled;
+			
 	if (g_Amor[victim])
 	{
 		if (Client_IsValid(attacker) && GetClientTeam(attacker) != GetClientTeam(victim))
