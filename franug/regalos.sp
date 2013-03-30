@@ -203,15 +203,12 @@ stock MineActive(entity)
 		RemoveEntity(ent, 1.0);
 		
 		entityposition[2] += 15.0;
-		makeexplosion(IsClientConnectedIngame(client) ? client : 0, -1, entityposition, "", GetConVarInt(cvar_damage));
+		makeexplosion(IsClientConnectedIngame(client) ? client : 0, -1, entityposition, "", 300);
 		
 		env_shake(entityposition, 120.0, 1000.0, 3.0, 250.0);
 		
 		EmitSoundToAll("weapons/physcannon/energy_disintegrate4.wav", 0, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, entityposition);
 		
-
-		if(!GetConVarBool(cvar_implode))
-			return;
 
 		// Knockback
 		new Float:vReturn[3], Float:vClientPosition[3], Float:dist;

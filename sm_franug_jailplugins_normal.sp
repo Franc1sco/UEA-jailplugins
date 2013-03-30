@@ -24,6 +24,8 @@
 * Arreglados errores con clientes inválidos
 * Arreglado un crash al disfrazarse
 * Arreglado un error con las AWP Congeladoras
+* Corregidos errores al obtener la mitad del coste de los premios
+* Arreglos en el Santa Claus
 */
 
 /* ATAJOS
@@ -66,38 +68,38 @@
 #define DUR_SHAKEG        1.0
 
 // damage types
-#define DMG_GENERIC									0
+#define DMG_GENERIC										0
 #define DMG_CRUSH										(1 << 0)
-#define DMG_BULLET									(1 << 1)
+#define DMG_BULLET										(1 << 1)
 #define DMG_SLASH										(1 << 2)
 #define DMG_BURN										(1 << 3)
-#define DMG_VEHICLE									(1 << 4)
+#define DMG_VEHICLE										(1 << 4)
 #define DMG_FALL										(1 << 5)
 #define DMG_BLAST										(1 << 6)
 #define DMG_CLUB										(1 << 7)
 #define DMG_SHOCK										(1 << 8)
 #define DMG_SONIC										(1 << 9)
-#define DMG_ENERGYBEAM							(1 << 10)
-#define DMG_PREVENT_PHYSICS_FORCE		(1 << 11)
-#define DMG_NEVERGIB								(1 << 12)
-#define DMG_ALWAYSGIB								(1 << 13)
+#define DMG_ENERGYBEAM									(1 << 10)
+#define DMG_PREVENT_PHYSICS_FORCE						(1 << 11)
+#define DMG_NEVERGIB									(1 << 12)
+#define DMG_ALWAYSGIB									(1 << 13)
 #define DMG_DROWN										(1 << 14)
-#define DMG_TIMEBASED								(DMG_PARALYZE | DMG_NERVEGAS | DMG_POISON | DMG_RADIATION | DMG_DROWNRECOVER | DMG_ACID | DMG_SLOWBURN)
-#define DMG_PARALYZE								(1 << 15)
-#define DMG_NERVEGAS								(1 << 16)
-#define DMG_POISON									(1 << 17)
-#define DMG_RADIATION								(1 << 18)
-#define DMG_DROWNRECOVER						(1 << 19)
+#define DMG_TIMEBASED									(DMG_PARALYZE | DMG_NERVEGAS | DMG_POISON | DMG_RADIATION | DMG_DROWNRECOVER | DMG_ACID | DMG_SLOWBURN)
+#define DMG_PARALYZE									(1 << 15)
+#define DMG_NERVEGAS									(1 << 16)
+#define DMG_POISON										(1 << 17)
+#define DMG_RADIATION									(1 << 18)
+#define DMG_DROWNRECOVER								(1 << 19)
 #define DMG_ACID										(1 << 20)
-#define DMG_SLOWBURN								(1 << 21)
-#define DMG_REMOVENORAGDOLL					(1 << 22)
-#define DMG_PHYSGUN									(1 << 23)
-#define DMG_PLASMA									(1 << 24)
-#define DMG_AIRBOAT									(1 << 25)
-#define DMG_DISSOLVE								(1 << 26)
-#define DMG_BLAST_SURFACE						(1 << 27)
-#define DMG_DIRECT									(1 << 28)
-#define DMG_BUCKSHOT								(1 << 29)
+#define DMG_SLOWBURN									(1 << 21)
+#define DMG_REMOVENORAGDOLL								(1 << 22)
+#define DMG_PHYSGUN										(1 << 23)
+#define DMG_PLASMA										(1 << 24)
+#define DMG_AIRBOAT										(1 << 25)
+#define DMG_DISSOLVE									(1 << 26)
+#define DMG_BLAST_SURFACE								(1 << 27)
+#define DMG_DIRECT										(1 << 28)
+#define DMG_BUCKSHOT									(1 << 29)
 
 #define Speed 200
 
@@ -507,7 +509,7 @@ public OnPluginStart()
 	PrepSDKCall_SetReturnInfo(SDKType_Vector, SDKPass_ByValue);
 	hGetWeaponPosition = EndPrepSDKCall();	
 	
-	/* ==================== ONPLUGINSTARTS  ==================== */
+	/* ==================== ONPLUGINSTART  ==================== */
 	
 	//OnPluginStart2();
 	OnPluginStart13();
@@ -519,6 +521,9 @@ public OnPluginStart()
 	InicioAR();	
 	// Creating DB...
 	//InitDB();
+
+	//AutoExecConfig(true, "sm_jailespecial_renew");
+	
 }
 
 public OnClientPutInServer(client)
@@ -958,7 +963,6 @@ public OnMapStart()
 	AddFileToDownloadsTable("models/player/slow/hl2/combine_super_soldier/slow.sw.vtx");
 	AddFileToDownloadsTable("models/player/slow/hl2/combine_super_soldier/slow.vvd");
 	PrecacheModel("models/player/slow/hl2/combine_super_soldier/slow.mdl");
-	//PrecacheSound("items/suitcharge1.wav");
 	PrecacheModel("models/player/UEA/urban_admin/ct_urban.mdl");	
 	PrecacheModel("models/player/UEA/ct_admin/ct_gign.mdl");	
 }
@@ -966,6 +970,7 @@ public OnMapStart()
 //--------------------------------------------------------------//
 // ######################### COMANDOS ######################### //
 //--------------------------------------------------------------//
+
 public Action:Ganzua_Open(client, args)
 {
 	new WeaponIndex = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
@@ -1147,9 +1152,6 @@ public Action:Resucitar(client,args)
 							CS_RespawnPlayer(client);
 							
 							g_iCredits[client] -= 4;
-							
-							//decl String:nombre[32];
-							//GetClientName(client, nombre, sizeof(nombre));
 							
 							CPrintToChatAllEx(client, "{default}[SM_Franug-JailPlugins] {olive}El jugador{teamcolor} %N {olive}ha resucitado!", client);
 							PrintCenterTextAll("El jugador %N ha resucitado!", client);
@@ -3993,11 +3995,7 @@ public Action:PlayerFootstep(Handle:event, const String:name[], bool:dontBroadca
 
 public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damagetype)
 {
-	// Anular daño por caidas a Batman
-	if (damagetype & DMG_FALL)
-		if (g_Batman[victim])
-			return Plugin_Handled;
-			
+	// Ser Amado
 	if (g_Amor[victim])
 	{
 		if (Client_IsValid(attacker) && GetClientTeam(attacker) != GetClientTeam(victim))
@@ -4007,6 +4005,8 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 		}
 		return Plugin_Handled;
 	}
+	
+	// Ataques del Megarobot, Monstruo y Pene
 	if (Client_IsValid(attacker))
 	{		
 		if (g_Robot[attacker] || g_Monster[attacker] || g_Pene[attacker])
@@ -4033,19 +4033,22 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 			}
 		}
 	}
+	
+	// Mostrar la vida de los Seres Especiales
 	if (g_cosa[victim])
 	{
 		new ShowHealthCosa = GetClientHealth(victim);
 		PrintHintText(victim, "%i HP", ShowHealthCosa);	
 	}
 
-	
+	// Godmode
 	if (g_Godmode[victim])
 	{
 		damage = 0.0;
 		return Plugin_Changed;
 	}
 	
+	// Vida del Fantasma
 	else if (g_Fantasma[victim])
 	{
 		if (Client_IsValid(attacker) && GetClientTeam(attacker) != GetClientTeam(victim))
@@ -4058,6 +4061,8 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 			}
 		}
 	}
+	
+	// Esquivar balas de Smith, Jack y Spiderman
 	else if (g_Smith[victim] || g_Jack[victim] || g_Spiderman[victim])
 	{
 		if (Client_IsValid(attacker))
@@ -4139,6 +4144,8 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 			}
 		}
 	}
+	
+	// Sonidos al dañar a Goku o Ironman
 	else if (g_Ironman[victim] || g_Goku[victim])
 	{
 		new number999 = GetRandomInt(1, 5);
@@ -4176,6 +4183,7 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 			}
 		}
 		
+		// Reducir el daño que recibe Goku y Ironman
 		if (g_Goku[victim])
 		{
 			damage = damage * 0.1;
@@ -4188,12 +4196,16 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 			return Plugin_Changed;
 		}
 	}
+	
+	// Reducir el daño que recibe Batman
 	else if (g_Batman[victim])
 	{
 		damage = damage * 0.2;
 		PrintToChatAll("Reduccion de daño");
 		return Plugin_Changed;
 	}
+	
+	// Sonidos al dañar al zombie
 	else if (g_Zombie[victim])
 	{
 		new number = GetRandomInt(1, 6);
@@ -4240,20 +4252,35 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 	
 	if(!Client_IsValid(attacker))
 	return Plugin_Continue;
+	
+	// Evitar otras armas congeladoras
 
 	new WeaponIndex = GetEntPropEnt(attacker, Prop_Send, "m_hActiveWeapon");
 	
+	new String:g_Weapon[32];
+	GetClientWeapon(attacker, g_Weapon, sizeof(g_Weapon));
+	
 	if (WeaponIndex < 0) return Plugin_Continue;
-	if(IsValidEntity(WeaponIndex) && AwpFreeze[WeaponIndex]) 
+	if (IsValidEntity(WeaponIndex) && AwpFreeze[WeaponIndex]) 
 	{
-		SetEntityMoveType(victim, MOVETYPE_NONE);
-		SetEntityRenderColor(victim, 0, 128, 255, 192);
-		new Float:vec[3];
-		GetClientEyePosition(victim, vec);
-		EmitAmbientSound(SOUND_FREEZE, vec, victim, SNDLEVEL_RAIDSIREN);
-		CreateTimer(GetConVarFloat(Timer_AwpFreeze), AwpDescongelar, victim);
+		// Evitar otras armas congeladoras
+		if (StrEqual(g_Weapon, "weapon_awp"))
+		{
+			SetEntityMoveType(victim, MOVETYPE_NONE);
+			SetEntityRenderColor(victim, 0, 128, 255, 192);
+			new Float:vec[3];
+			GetClientEyePosition(victim, vec);
+			EmitAmbientSound(SOUND_FREEZE, vec, victim, SNDLEVEL_RAIDSIREN);
+			CreateTimer(GetConVarFloat(Timer_AwpFreeze), AwpDescongelar, victim);
+		}
+		else
+		{
+			new wepIdx = GetPlayerWeaponSlot(attacker, 0);
+			RemovePlayerItem(attacker, wepIdx);
+			RemoveEdict(wepIdx);
+			ConvertirAwpFreeze(attacker);
+		}
 	}	
-
 	return Plugin_Continue;
 }
 
@@ -4261,6 +4288,7 @@ public Action:PlayerJump(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 	
+	// Saltos de los Seres Especiales
 	if (g_Robot[client]) SaltoRobot(client);
 	else if (g_Ironman[client]) SaltoIronman(client);
 	else if (g_Gallina[client]) SaltoGallina(client);
@@ -4280,6 +4308,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	CreateTimer(2.0, MensajesMuerte, client);
 	SetClientThrowingKnives(client, 0);
 
+	// Borrar el Pene del mapa
 	if(g_Pene[client])
 	{
 		if(g_Attachments[client] != 0 && IsValidEdict(g_Attachments[client]))
@@ -4289,14 +4318,15 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 		}
 	}
 	
+	// No hay atacante
 	if (!attacker)
-	return;
+		return;
 	
+	// El atacante es la víctima
 	if (attacker == client)
-	return;
+		return;
 	
-	// OBTENER LA MITAD DEL PRECIO DE LOS SERES ESPECIALES
-	
+	// Obtener la mitad de los créditos de un Ser Especial al matarlo
 	if (g_cosa[client])
 	{
 		if (g_Medic[client])
@@ -4445,40 +4475,40 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 				PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Tus creditos: %i (Maximo permitido)", g_iCredits[attacker]);			
 			}
 		}	
-		// if (g_Paloma[client])
-		// {
-		// if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
-		// {
-		// new PalomaDif = GetConVarInt(CostPaloma) / GetConVarInt(Dif);
-		// g_iCredits[attacker] += GetConVarInt(PalomaDif);
-		// PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", PalomaDif);
-		// }
-		// else
-		// {
-		// g_iCredits[attacker] = GetConVarInt(cvarCreditsMax);
-		// PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Tus creditos: %i (Maximo permitido)", g_iCredits[attacker]);			
-		// }
-		// }		
-		// if (g_Gallina[client])
-		// {
-		// if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
-		// {
-		// new GallinaDif = GetConVarInt(CostGallina) / GetConVarInt(Dif);
-		// g_iCredits[attacker] += GetConVarInt(GallinaDif);
-		// PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", GallinaDif);
-		// }
-		// else
-		// {
-		// g_iCredits[attacker] = GetConVarInt(cvarCreditsMax);
-		// PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Tus creditos: %i (Maximo permitido)", g_iCredits[attacker]);			
-		// }
-		// }	
+		if (g_Paloma[client])
+		{
+			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
+			{
+				new PalomaDif = 5 / GetConVarInt(Dif);
+				g_iCredits[attacker] += RoundToCeil(float(PalomaDif));
+				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", PalomaDif);
+			}
+			else
+			{
+			g_iCredits[attacker] = GetConVarInt(cvarCreditsMax);
+			PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Tus creditos: %i (Maximo permitido)", g_iCredits[attacker]);			
+			}
+		}		
+		if (g_Gallina[client])
+		{
+			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
+			{
+			new GallinaDif = 5 / GetConVarInt(Dif);
+			g_iCredits[attacker] += RoundToCeil(float(GallinaDif));
+			PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", GallinaDif);
+			}
+			else
+			{
+			g_iCredits[attacker] = GetConVarInt(cvarCreditsMax);
+			PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Tus creditos: %i (Maximo permitido)", g_iCredits[attacker]);			
+			}	
+		}
 		if (g_Smith[client])
 		{
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new SmithDif = GetConVarInt(CostSmith) / GetConVarInt(Dif);
-				g_iCredits[attacker] += SmithDif;
+				g_iCredits[attacker] += RoundToCeil(float(SmithDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", SmithDif);
 			}
 			else
@@ -4492,7 +4522,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new JackDif = GetConVarInt(CostJack) / GetConVarInt(Dif);
-				g_iCredits[attacker] += JackDif;
+				g_iCredits[attacker] += RoundToCeil(float(JackDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", JackDif);
 			}
 			else
@@ -4506,7 +4536,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new GroudonDif = GetConVarInt(CostGroudon) / GetConVarInt(Dif);
-				g_iCredits[attacker] += GroudonDif;
+				g_iCredits[attacker] += RoundToCeil(float(GroudonDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", GroudonDif);
 			}
 			else
@@ -4520,7 +4550,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new FantasmaDif = GetConVarInt(CostFantasma) / GetConVarInt(Dif);
-				g_iCredits[attacker] += FantasmaDif;
+				g_iCredits[attacker] += RoundToCeil(float(FantasmaDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", FantasmaDif);
 			}
 			else
@@ -4534,7 +4564,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new PikachuDif = GetConVarInt(CostPikachu) / GetConVarInt(Dif);
-				g_iCredits[attacker] += PikachuDif;
+				g_iCredits[attacker] += RoundToCeil(float(PikachuDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", PikachuDif);
 			}
 			else
@@ -4548,7 +4578,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new PredatorDif = GetConVarInt(CostPredator) / GetConVarInt(Dif);
-				g_iCredits[attacker] += PredatorDif;
+				g_iCredits[attacker] += RoundToCeil(float(PredatorDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", PredatorDif);
 			}
 			else
@@ -4562,7 +4592,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new ReinaDif = GetConVarInt(CostReina) / GetConVarInt(Dif);
-				g_iCredits[attacker] += ReinaDif;
+				g_iCredits[attacker] += RoundToCeil(float(ReinaDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", ReinaDif);
 			}
 			else
@@ -4576,7 +4606,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new SantaDif = GetConVarInt(CostSanta) / GetConVarInt(Dif);
-				g_iCredits[attacker] += SantaDif;
+				g_iCredits[attacker] += RoundToCeil(float(SantaDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", SantaDif);
 			}
 			else
@@ -4590,7 +4620,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new PeneDif = GetConVarInt(CostPene) / GetConVarInt(Dif);
-				g_iCredits[attacker] += PeneDif;
+				g_iCredits[attacker] += RoundToCeil(float(PeneDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", PeneDif);
 			}
 			else
@@ -4604,7 +4634,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 			if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 			{
 				new TrainerDif = GetConVarInt(CostTrainer) / GetConVarInt(Dif);
-				g_iCredits[attacker] += TrainerDif;
+				g_iCredits[attacker] += RoundToCeil(float(TrainerDif));
 				PrintToChat(attacker, "\x04[Franug-JailPlugins] \x05Has ganado \x04%i \x05creditos", TrainerDif);
 			}
 			else
@@ -4630,7 +4660,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	}
 	
 	if (GetClientTeam(attacker) != 2)
-	return;
+		return;
 	
 	if (g_Muertes[attacker] > 0)
 	{
@@ -5318,7 +5348,7 @@ public Action:DID(clientId)
 	AddMenuItem(menu, "m_iGroudon", "Convertirse en POKEMON GROUDON - 18 Creditos");	
 	AddMenuItem(menu, "m_iGoku", "Convertirse en GOKU - 18 Creditos");
 	AddMenuItem(menu, "m_iJack", "Convertirse en JACK ESQUELETON - 18 Creditos");
-	AddMenuItem(menu, "m_iBatman", "Convertirse en BATMAN - 18 Creditos");		
+	//AddMenuItem(menu, "m_iBatman", "Convertirse en BATMAN - 18 Creditos");		
 	AddMenuItem(menu, "m_iFantasma", "Convertirse en FANTASMA - 20 Creditos");
 	AddMenuItem(menu, "m_iPredator", "Convertirse en PREDATOR - 20 Creditos");
 	AddMenuItem(menu, "m_iAmada", "Convertirse en SER AMADO - 20 Creditos");
@@ -8593,17 +8623,3 @@ public Action:OpcionNumero21(Handle:timer, Handle:pack)
 }
 
 // Final DADOS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
