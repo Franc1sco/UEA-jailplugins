@@ -26,6 +26,7 @@
 * Arreglado un error con las AWP Congeladoras
 * Corregidos errores al obtener la mitad del coste de los premios
 * Arreglos en el Santa Claus
+* Modelo y Sonidos de Batman
 */
 
 /* ATAJOS
@@ -964,7 +965,28 @@ public OnMapStart()
 	AddFileToDownloadsTable("models/player/slow/hl2/combine_super_soldier/slow.vvd");
 	PrecacheModel("models/player/slow/hl2/combine_super_soldier/slow.mdl");
 	PrecacheModel("models/player/UEA/urban_admin/ct_urban.mdl");	
-	PrecacheModel("models/player/UEA/ct_admin/ct_gign.mdl");	
+	PrecacheModel("models/player/UEA/ct_admin/ct_gign.mdl");
+
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman.vmt");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman.vtf");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman_belt.vmt");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman_blades.vmt");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman_bump.vtf");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman_exp.vtf");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman_eyes.vmt");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman_latex.vmt");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman_pockets.vmt");
+	AddFileToDownloadsTable("materials/models/player/slow/jamis/mkvsdcu/batman/slow_batman_skin.vmt");
+	AddFileToDownloadsTable("models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.dx80.vtx");
+	AddFileToDownloadsTable("models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.dx90.vtx");
+	AddFileToDownloadsTable("models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.mdl");
+	AddFileToDownloadsTable("models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.phy");
+	AddFileToDownloadsTable("models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.sw.vtx");
+	AddFileToDownloadsTable("models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.sw.vtx");
+	AddFileToDownloadsTable("models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.vvd");
+	AddFileToDownloadsTable("sound/UEA/batman.mp3");
+	PrecacheSound("UEA/batman.mp3");
+	PrecacheModel("models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.mdl");
 }
 
 //--------------------------------------------------------------//
@@ -2195,6 +2217,7 @@ public Action:Dar(client, args)
 ConvertirBatman(client)
 {
 	// Features
+	EmitSoundToAll("UEA/batman.mp3");
 	SetEntityHealth(client, GetConVarInt(HealthBatman));
 	SetEntityModel(client, ModelBatman);
 	SetEntPropFloat(client, Prop_Data, "m_flLaggedMovementValue", GetConVarFloat(SpeedBatman));
@@ -3730,7 +3753,7 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 				new target = GetClientOfUserId(target_index);
 				decl Float:ClientOrigin[3],Float:TargetOrigin[3], Float:Distance;
 				
-				if (Client_IsValid(target) && IsPlayerAlive(target))
+				if (IsPlayerAlive(target))
 				{
 					GetClientAbsOrigin(client, ClientOrigin);	
 					GetClientAbsOrigin(target, TargetOrigin);	

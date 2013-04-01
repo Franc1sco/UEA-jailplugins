@@ -16,7 +16,7 @@
 #define ModelTrainer "models/mapeadores/morell/ash/ash.mdl"
 #define ModelPene "models/props/slow/joe100/dick/slow.mdl"
 #define ModelMedic "models/player/slow/hl2/combine_super_soldier/slow.mdl"
-#define ModelBatman "models/player/slow/hl2/combine_super_soldier/slow.mdl"
+#define ModelBatman "models/player/slow/jamis/mkvsdcu/batman/slow_pub_v2.mdl"
 
 
 public LoadConVars()
