@@ -27,6 +27,12 @@
 * Corregidos errores al obtener la mitad del coste de los premios
 * Arreglos en el Santa Claus
 * Modelo y Sonidos de Batman
+* El médico tiene munición extra
+*/
+
+/* 2.8.3
+* Quitado el comando !darme
+* Aumentado el daño de la Reina  Alien
 */
 
 /* ATAJOS
@@ -60,7 +66,7 @@
 
 /* ==================== DEFINES ==================== */
 
-#define VERSION "2.8.2"
+#define VERSION "2.8.3"
 
 #define AMP_SHAKE        50.0
 #define DUR_SHAKE        1.0
@@ -447,7 +453,7 @@ public OnPluginStart()
 	RegAdminCmd("sm_normal", Command_Normalizar, ADMFLAG_GENERIC);
 	RegAdminCmd("sm_setcredits", FijarCreditos, ADMFLAG_ROOT);
 	//RegAdminCmd("sm_resetdb", Command_Clear, ADMFLAG_ROOT);
-	RegAdminCmd("sm_darme", Darme, ADMFLAG_CUSTOM2);
+	//RegAdminCmd("sm_darme", Darme, ADMFLAG_CUSTOM2);
 	RegAdminCmd("sm_zombie", Zombie, ADMFLAG_CUSTOM2);
 	RegAdminCmd("sm_amor", Amor, ADMFLAG_CUSTOM2);
 	RegAdminCmd("sm_predator", Predator, ADMFLAG_CUSTOM2);
@@ -2500,7 +2506,10 @@ ConvertirMedic(client)
 	GivePlayerItem(client, "weapon_mp5navy");
 	GivePlayerItem(client, "weapon_fiveseven");
 	GivePlayerItem(client, "weapon_knife");
-	HideWeapons(client);
+	
+	new zomg = GetEntDataEnt2(client, activeOffset);
+	if (PrimaryAmmoOff != -1 && zomg != -1)
+	SetEntData(zomg, PrimaryAmmoOff, 1000);
 	g_cosa[client] = true;
 }
 

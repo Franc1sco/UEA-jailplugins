@@ -60,7 +60,7 @@ public LoadConVars()
 	hPush1 = CreateConVar("sm_hpush2","1.0", "Salto del Zombie");
 	hHeight1 = CreateConVar("sm_hheight2","3.0", "Altura del salto del Zombie");
 
-	css_avp_damage = CreateConVar("sm_avp_alienqueen_damage", "500", "Daño hecho por la Reina Alien", FCVAR_PLUGIN);
+	css_avp_damage = CreateConVar("sm_avp_alienqueen_damage", "1500", "Daño hecho por la Reina Alien", FCVAR_PLUGIN);
 	css_avp_radius = CreateConVar("sm_avp_alienqueen_radius", "25", "Radio de inicio", FCVAR_PLUGIN);		
 	css_avp_pushforce = CreateConVar("sm_avp_alienqueen_pushforce", "1000", "Fuerza del ácido", FCVAR_PLUGIN);
 
@@ -104,7 +104,7 @@ public LoadConVars()
 	CostSpiderman = CreateConVar("sm_cost_spiderman", "16", "Coste del SPIDERMAN");		
 
 	HealthReina = CreateConVar("sm_health_reina", "2500", "Vida de la REINA ALIEN");
-	SpeedReina = CreateConVar("sm_speed_reina", "1.0", "Velocidad de la REINA ALIEN");
+	SpeedReina = CreateConVar("sm_speed_reina", "0.8", "Velocidad de la REINA ALIEN");
 	CostReina = CreateConVar("sm_cost_reina", "16", "Coste de la REINA ALIEN");	
 	
 	HealthMonstruo = CreateConVar("sm_health_monstruo", "3000", "Vida del MONSTRUO");
