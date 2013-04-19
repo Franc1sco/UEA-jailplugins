@@ -33,6 +33,9 @@
 /* 2.8.3
 * Quitado el comando !darme
 * Aumentado el daño de la Reina  Alien
+* Smith solo para Admins CT
+* Bicho ígneo solo para Admins T
+* Los admins reciben 2 créditos más al matar y al finalizar la ronda
 */
 
 /* ATAJOS
@@ -285,6 +288,7 @@ new Handle:CostBatman;
 //	BOOL
 // ======================================================================
 
+new bool:g_Explosiva[MAXPLAYERS+1] = {false, ...};
 new bool:g_Golpeado[MAXPLAYERS+1] = {false, ...};
 new bool:g_Batman[MAXPLAYERS+1] = {false, ...};
 new bool:g_Amor[MAXPLAYERS+1] = {false, ...};
@@ -4679,6 +4683,11 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	else
 	{
 		g_iCredits[attacker] += GetConVarInt(cvarCreditsKill);
+		if (Client_IsAdmin(attacker))
+		{
+			PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu cuota. Recibes 2 creditos mas");
+			g_iCredits[attacker] += 2;
+		}
 		
 		if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 		{
@@ -4982,6 +4991,12 @@ public Action:Event_RoundEnd(Handle: event , const String: name[] , bool: dontBr
 		if (IsClientInGame(i) && Client_IsValid(i) &&  GetClientTeam(i) != 1)
 		{
 			g_iCredits[i] += 2;
+			if (Client_IsAdmin(i))
+			{
+				PrintToChat(i, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu couta. Recibes 2 creditos mas");
+				g_iCredits[i] += 2;
+			}
+			
 		}
 	}
 	Fin_Ronda = true;
@@ -5319,6 +5334,14 @@ public BulletImpact(Handle:event,const String:name[],bool:dontBroadcast)
 			TE_SetupBeamPoints(newBulletOrigin, bulletDestination, gLaser1, 0, 0, 0, life, width, width, 1, 0.0, color, 0);
 			TE_SendToAll();
 		}
+		else if(g_Explosiva[attacker])
+		{
+			new Float:iVec[3];
+			GetClientAbsOrigin(victim, Float:iVec );
+			
+			TE_SetupExplosion(iVec, g_ExplosionSprite, 5.0, 1, 0, 50, 40, iNormal );
+			TE_SendToAll();		
+		}
 	}
 }
 
@@ -5352,10 +5375,11 @@ public Action:DID(clientId)
 	AddMenuItem(menu, "m_iGallina", "Convertirse en GALLINA - 5 Creditos");
 	AddMenuItem(menu, "m_iVelocidad", "Mas velocidad - 5 Creditos");
 	AddMenuItem(menu, "m_iInfiAmmo", "Municion Infinita - 6 Creditos");
-	AddMenuItem(menu, "m_iKamikaze", "Convertirse en KAMIKAZE EXPLOSIVO (solo T) - 7 Creditos");
+	AddMenuItem(menu, "m_iKamikaze", "Convertirse en KAMIKAZE EXPLOSIVO (Solo T) - 7 Creditos");
 	AddMenuItem(menu, "m_iMisil", "Comprar MISIL - 7 Creditos");
 	AddMenuItem(menu, "m_iRambo", "Comprar metralleta RAMBO - 7 Creditos");
 	AddMenuItem(menu, "m_iInvulnerable", "INVULNERABLE 20 segundos - 7 Creditos");
+	AddMenuItem(menu, "m_iExplosiva", "Comprar MUNICION EXPLOSIVA  - 8 Creditos");
 	AddMenuItem(menu, "m_iDisfraces", "Disfrazarse  - 8 Creditos");
 	AddMenuItem(menu, "m_iAWP", "Comprar AWP - 8 Creditos");
 	AddMenuItem(menu, "m_iSmall", "Hacerse DIMINUTO - 9 Creditos");
@@ -5365,18 +5389,24 @@ public Action:DID(clientId)
 	AddMenuItem(menu, "m_iFuegoRapido", "Fuego Rapido - 12 Creditos");
 	AddMenuItem(menu, "m_iCloak", "Camuflaje - 12 Creditos");
 	AddMenuItem(menu, "m_iTrainer", "Convertirse en ENTRENADOR POKEMON - 12 Creditos");	
-	AddMenuItem(menu, "m_iZombie", "Convertirse en ZOMBIE (solo T) - 12 Creditos");
-	AddMenuItem(menu, "m_iIronman", "Convertirse en IRONMAN (solo CT) - 14 Creditos");	
-	// AddMenuItem(menu, "m_iBicho", "Convertirse en BICHO IGNEO - 14 Creditos");
-	AddMenuItem(menu, "m_iMedic", "Convertirse en MEDICO (solo CT) - 14 Creditos");	
-	// AddMenuItem(menu, "m_iSmith", "Convertirse en AGENTE SMITH (solo CT) - 15 Creditos");	
+	AddMenuItem(menu, "m_iZombie", "Convertirse en ZOMBIE (Solo T) - 12 Creditos");
+	AddMenuItem(menu, "m_iIronman", "Convertirse en IRONMAN (Solo CT) - 14 Creditos");	
+	if (Client_IsAdmin(client))
+	{
+		AddMenuItem(menu, "m_iBicho", "Convertirse en BICHO IGNEO (Solo ADMINS T) - 14 Creditos");
+	}
+	AddMenuItem(menu, "m_iMedic", "Convertirse en MEDICO (Solo CT) - 14 Creditos");	
+	if (Client_IsAdmin(client))
+	{
+		AddMenuItem(menu, "m_iSmith", "Convertirse en AGENTE SMITH (Solo ADMINS CT) - 15 Creditos");	
+	}
 	AddMenuItem(menu, "m_iSoldado", "Convertirse en SOLDADO CIBERNETICO (solo CT) - 15 Creditos");
 	AddMenuItem(menu, "m_iPikachu", "Convertirse en POKEMON PIKACHU - 15 Creditos");	
-	AddMenuItem(menu, "m_iSpiderman", "Convertirse en SPIDERMAN (solo CT) - 16 Creditos");	
-	AddMenuItem(menu, "m_iReina", "Convertirse en REINA ALIEN (solo T) - 16 Creditos");
+	AddMenuItem(menu, "m_iSpiderman", "Convertirse en SPIDERMAN (Solo CT) - 16 Creditos");	
+	AddMenuItem(menu, "m_iReina", "Convertirse en REINA ALIEN (Solo T) - 16 Creditos");
 	// AddMenuItem(menu, "m_iSanta", "Convertirse en SANTA CLAUS - 16 Creditos");	
-	AddMenuItem(menu, "m_iMonstruo", "Convertirse en MONSTRUO (solo T) - 17 Creditos");
-	AddMenuItem(menu, "m_iRobot", "Convertirse en MEGA ROBOT (solo CT) - 17 Creditos");
+	AddMenuItem(menu, "m_iMonstruo", "Convertirse en MONSTRUO (Solo T) - 17 Creditos");
+	AddMenuItem(menu, "m_iRobot", "Convertirse en MEGA ROBOT (Solo CT) - 17 Creditos");
 	AddMenuItem(menu, "m_iGroudon", "Convertirse en POKEMON GROUDON - 18 Creditos");	
 	AddMenuItem(menu, "m_iGoku", "Convertirse en GOKU - 18 Creditos");
 	AddMenuItem(menu, "m_iJack", "Convertirse en JACK ESQUELETON - 18 Creditos");
@@ -6005,7 +6035,37 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 			}
 			
 		}
-		
+		else if ( strcmp(info,"m_iInvulnerable") == 0 ) 
+		{
+			{
+				DID(client);
+				if (g_iCredits[client] >= 8)
+				{
+					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					{
+						if (g_cosa[client])
+						{
+							
+							PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05No puedes comprar siendo un ser especial!");
+							return;
+						}
+						g_Explosiva[client] = true;
+						g_iCredits[client] -= 8;
+						
+						PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Ahora tienes MUNICION EXPLOSIVA! Tus creditos: %i (-8)", g_iCredits[client]);
+					}
+					else
+					{
+						PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Tienes que estar vivo para poder comprar premios");
+					}
+				}
+				else
+				{
+					PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Tus creditos: %i (No tienes suficiente Creditos! Necesitas 8)", g_iCredits[client]);
+				}
+			}
+			
+		}		
 		else if ( strcmp(info,"m_iDisfraces") == 0 ) 
 		{
 			{
@@ -6441,16 +6501,23 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				{
 					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
 					{
-						if (g_cosa[client])
+						if (GetClientTeam(client) == CS_TEAM_T)
 						{
-							
-							PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05No puedes comprar siendo un ser especial!");
-							return;
+							if (g_cosa[client])
+							{
+								
+								PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05No puedes comprar siendo un ser especial!");
+								return;
+							}
+							ConvertirBicho(client);
+							g_iCredits[client] -= GetConVarInt(CostBicho);
+							PrintToChatAll("\x04[SM_Franug-JailPlugins] \x05Ha aparecido un BICHO IGNEO!!!");
+							PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Ahora eres un BICHO IGNEO!! Tus creditos: %i (-%d)", g_iCredits[client], GetConVarInt(CostBicho));
 						}
-						ConvertirBicho(client);
-						g_iCredits[client] -= GetConVarInt(CostBicho);
-						PrintToChatAll("\x04[SM_Franug-JailPlugins] \x05Ha aparecido un BICHO IGNEO!!!");
-						PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Ahora eres un BICHO IGNEO!! Tus creditos: %i (-%d)", g_iCredits[client], GetConVarInt(CostBicho));
+						else
+						{
+							PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Tienes que ser T para poder usar esto");
+						}
 					}
 					else
 					{

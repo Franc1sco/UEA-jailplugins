@@ -414,6 +414,10 @@ stock Normalizar(client)
 	{
 		g_RapidFire[client] = false;
 	}	
+	if (g_Explosiva[client])
+	{
+		g_Explosiva[client] = false;
+	}	
 	if (g_Bomba[client])
 	{
 		g_Bomba[client] = false;
