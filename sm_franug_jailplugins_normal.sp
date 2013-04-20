@@ -4309,13 +4309,6 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 			EmitAmbientSound(SOUND_FREEZE, vec, victim, SNDLEVEL_RAIDSIREN);
 			CreateTimer(GetConVarFloat(Timer_AwpFreeze), AwpDescongelar, victim);
 		}
-		else
-		{
-			new wepIdx = GetPlayerWeaponSlot(attacker, 0);
-			RemovePlayerItem(attacker, wepIdx);
-			RemoveEdict(wepIdx);
-			ConvertirAwpFreeze(attacker);
-		}
 	}	
 	return Plugin_Continue;
 }
@@ -5336,11 +5329,7 @@ public BulletImpact(Handle:event,const String:name[],bool:dontBroadcast)
 		}
 		else if(g_Explosiva[attacker])
 		{
-			new Float:iVec[3];
-			GetClientAbsOrigin(victim, Float:iVec );
-			
-			TE_SetupExplosion(iVec, g_ExplosionSprite, 5.0, 1, 0, 50, 40, iNormal );
-			TE_SendToAll();		
+		
 		}
 	}
 }
@@ -5379,7 +5368,7 @@ public Action:DID(clientId)
 	AddMenuItem(menu, "m_iMisil", "Comprar MISIL - 7 Creditos");
 	AddMenuItem(menu, "m_iRambo", "Comprar metralleta RAMBO - 7 Creditos");
 	AddMenuItem(menu, "m_iInvulnerable", "INVULNERABLE 20 segundos - 7 Creditos");
-	AddMenuItem(menu, "m_iExplosiva", "Comprar MUNICION EXPLOSIVA  - 8 Creditos");
+	//AddMenuItem(menu, "m_iExplosiva", "Comprar MUNICION EXPLOSIVA  - 8 Creditos");
 	AddMenuItem(menu, "m_iDisfraces", "Disfrazarse  - 8 Creditos");
 	AddMenuItem(menu, "m_iAWP", "Comprar AWP - 8 Creditos");
 	AddMenuItem(menu, "m_iSmall", "Hacerse DIMINUTO - 9 Creditos");
@@ -5391,12 +5380,12 @@ public Action:DID(clientId)
 	AddMenuItem(menu, "m_iTrainer", "Convertirse en ENTRENADOR POKEMON - 12 Creditos");	
 	AddMenuItem(menu, "m_iZombie", "Convertirse en ZOMBIE (Solo T) - 12 Creditos");
 	AddMenuItem(menu, "m_iIronman", "Convertirse en IRONMAN (Solo CT) - 14 Creditos");	
-	if (Client_IsAdmin(client))
+	if (Client_IsAdmin(clientId))
 	{
 		AddMenuItem(menu, "m_iBicho", "Convertirse en BICHO IGNEO (Solo ADMINS T) - 14 Creditos");
 	}
 	AddMenuItem(menu, "m_iMedic", "Convertirse en MEDICO (Solo CT) - 14 Creditos");	
-	if (Client_IsAdmin(client))
+	if (Client_IsAdmin(clientId))
 	{
 		AddMenuItem(menu, "m_iSmith", "Convertirse en AGENTE SMITH (Solo ADMINS CT) - 15 Creditos");	
 	}
