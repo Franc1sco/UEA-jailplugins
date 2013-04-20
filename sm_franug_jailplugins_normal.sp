@@ -5328,8 +5328,30 @@ public BulletImpact(Handle:event,const String:name[],bool:dontBroadcast)
 			TE_SendToAll();
 		}
 		else if(g_Explosiva[attacker])
-		{
+		{			
+			new Float:bulletDestination[3];
+			bulletDestination[0] = GetEventFloat(event, "x");
+			bulletDestination[1] = GetEventFloat(event, "y");
+			bulletDestination[2] = GetEventFloat(event, "z");
 		
+			new explosion = CreateEntityByName("env_explosion");
+			if(explosion != -1)
+			{
+				DispatchKeyValueVector(explosion, "Origin", bulletDestination);
+				DispatchKeyValue(explosion, "iMagnitude", "500");
+				DispatchKeyValue(explosion, "iRadiusOverride", "200");
+				DispatchKeyValue(explosion, "DamageForce", "0.0");
+				DispatchKeyValue(explosion, "spawnflags", "0");
+				DispatchSpawn(explosion);
+				if(IsClientInGame(attacker))
+				{
+					SetEntPropEnt(explosion, Prop_Send, "m_hOwnerEntity", attacker);
+					new clientTeam = GetEntProp(attacker, Prop_Send, "m_iTeamNum");
+					SetEntProp(explosion, Prop_Send, "m_iTeamNum", clientTeam);
+				}
+				AcceptEntityInput(explosion, "Explode");
+				AcceptEntityInput(explosion, "Kill");
+			}
 		}
 	}
 }
