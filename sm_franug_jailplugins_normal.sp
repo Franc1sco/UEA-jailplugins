@@ -38,6 +38,12 @@
 * Los admins reciben 2 créditos más al matar y al finalizar la ronda
 */
 
+/* 2.8.4
+* Lanzar Batman
+* Lanzar Munición Explosiva
+* Rondas Especiales
+*/
+
 /* ATAJOS
 * Buscar: COMANDOS
 * Buscar: Final COMANDOS
@@ -116,6 +122,7 @@
 //#define MESS "\x04[SM_Franug-JailPlugins] \x05"
 
 #define EXPLODE_SOUND	"ambient/explosions/explode_8.wav"
+#define SOUND_BOOM		"weapons/explode3.wav"
 #define SOUND_FREEZE		"physics/glass/glass_impact_bullet4.wav"
 
 // junto duchas
@@ -439,6 +446,7 @@ public OnPluginStart()
 	
 	/* ==================== COMANDOS ==================== */
 
+	RegAdminCmd("sm_explosiva", ComandoExplosiva, ADMFLAG_ROOT);
 	RegConsoleCmd("sm_premios", DOMenu);
 	RegConsoleCmd("sm_disfraces", DODMH);
 	RegConsoleCmd("sm_creditos", VerCreditos);
@@ -455,7 +463,7 @@ public OnPluginStart()
 	RegConsoleCmd("sm_dar", Dar);
 	RegConsoleCmd("sm_gopen", Ganzua_Open);
 	RegAdminCmd("sm_normal", Command_Normalizar, ADMFLAG_GENERIC);
-	RegAdminCmd("sm_setcredits", FijarCreditos, ADMFLAG_ROOT);
+	//RegAdminCmd("sm_setcredits", FijarCreditos, ADMFLAG_ROOT);
 	//RegAdminCmd("sm_resetdb", Command_Clear, ADMFLAG_ROOT);
 	//RegAdminCmd("sm_darme", Darme, ADMFLAG_CUSTOM2);
 	RegAdminCmd("sm_zombie", Zombie, ADMFLAG_CUSTOM2);
@@ -553,7 +561,8 @@ public OnMapStart()
 	gGlow1 = PrecacheModel("sprites/blueglow2.vmt", true);
 	gSmoke1 = PrecacheModel("materials/effects/fire_cloud1.vmt");
 	gLaser1 = PrecacheModel("materials/sprites/laser.vmt");	
-	PrecacheSound( EXPLODE_SOUND );
+	PrecacheSound(EXPLODE_SOUND);
+	PrecacheSound(SOUND_BOOM);
 	g_ExplosionSprite = PrecacheModel( "sprites/blueglow2.vmt" );
 	g_SmokeSprite = PrecacheModel( "sprites/steam1.vmt" );	
 	g_LightningSpriter = PrecacheModel("sprites/lgtning.vmt");
@@ -1002,7 +1011,11 @@ public OnMapStart()
 //--------------------------------------------------------------//
 // ######################### COMANDOS ######################### //
 //--------------------------------------------------------------//
-
+public Action:ComandoExplosiva(client, args)
+{
+	g_Explosiva[client] = true;
+	PrintToChat(client, "Ahora tienes MUNICION EXPLOSIVA");
+}
 public Action:Ganzua_Open(client, args)
 {
 	new WeaponIndex = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
@@ -4949,7 +4962,7 @@ public Action:Event_RoundStart(Handle:event, const String:name[], bool:dontBroad
 	if (GetConVarBool(RondasEspeciales))
 	{
 		
-		new randomespecial = GetRandomInt(1, 20);
+		new randomespecial = GetRandomInt(1, 15);
 		switch (randomespecial)
 		{
 		case 1:
@@ -5338,8 +5351,8 @@ public BulletImpact(Handle:event,const String:name[],bool:dontBroadcast)
 			if(explosion != -1)
 			{
 				DispatchKeyValueVector(explosion, "Origin", bulletDestination);
-				DispatchKeyValue(explosion, "iMagnitude", "500");
-				DispatchKeyValue(explosion, "iRadiusOverride", "200");
+				DispatchKeyValue(explosion, "iMagnitude", "50");
+				DispatchKeyValue(explosion, "iRadiusOverride", "100");
 				DispatchKeyValue(explosion, "DamageForce", "0.0");
 				DispatchKeyValue(explosion, "spawnflags", "0");
 				DispatchSpawn(explosion);
@@ -5351,7 +5364,16 @@ public BulletImpact(Handle:event,const String:name[],bool:dontBroadcast)
 				}
 				AcceptEntityInput(explosion, "Explode");
 				AcceptEntityInput(explosion, "Kill");
+				
+				TE_SetupExplosion(bulletDestination, g_ExplosionSprite, 5.0, 1, 0, 50, 40, iNormal );
+				TE_SendToAll();
+				
+				TE_SetupSmoke(bulletDestination, g_SmokeSprite, 10.0, 3 );
+				TE_SendToAll();
+				
+				EmitAmbientSound(SOUND_BOOM, bulletDestination, SOUND_FROM_WORLD, SNDLEVEL_NORMAL);
 			}
+			
 		}
 	}
 }
