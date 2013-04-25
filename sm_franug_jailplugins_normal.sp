@@ -42,6 +42,7 @@
 * Lanzar Batman
 * Lanzar Munición Explosiva
 * Rondas Especiales
+* Activar/Desactivar Fantasma
 */
 
 /* ATAJOS
@@ -75,7 +76,7 @@
 
 /* ==================== DEFINES ==================== */
 
-#define VERSION "2.8.3"
+#define VERSION "2.8.4"
 
 #define AMP_SHAKE        50.0
 #define DUR_SHAKE        1.0
@@ -446,7 +447,7 @@ public OnPluginStart()
 	
 	/* ==================== COMANDOS ==================== */
 
-	RegAdminCmd("sm_explosiva", ComandoExplosiva, ADMFLAG_ROOT);
+	RegAdminCmd("sm_batman", ComandoBatman, ADMFLAG_ROOT);
 	RegConsoleCmd("sm_premios", DOMenu);
 	RegConsoleCmd("sm_disfraces", DODMH);
 	RegConsoleCmd("sm_creditos", VerCreditos);
@@ -1011,10 +1012,10 @@ public OnMapStart()
 //--------------------------------------------------------------//
 // ######################### COMANDOS ######################### //
 //--------------------------------------------------------------//
-public Action:ComandoExplosiva(client, args)
+public Action:ComandoBatman(client, args)
 {
-	g_Explosiva[client] = true;
-	PrintToChat(client, "Ahora tienes MUNICION EXPLOSIVA");
+	ConvertirBatman(client);
+	PrintToChat(client, "Ahora eres BATMAN");
 }
 public Action:Ganzua_Open(client, args)
 {
@@ -1487,6 +1488,25 @@ public Action:Utilidad(client, args)
 		{
 			g_Trepando[client] = true;
 			PrintToChat(client,"\x04[SM_Franug-JailPlugins] \x05Modo trepar Activado");
+		}
+	}
+	else if(g_Fantasma[client])
+	{ 
+		if (g_Fantasma[client])
+		{
+			g_Fantasma[client] = false;
+			SetEntityMoveType(client, MOVETYPE_NOCLIP);
+			SetEntityRenderMode(client, RENDER_TRANSCOLOR);
+			SetEntityRenderColor(client, 255, 255, 255, 128);	
+			PrintToChat(client,"\x04[SM_Franug-JailPlugins] \x05Vuelves a ser un FANTASMA");
+		}
+		else
+		{
+			g_Fantasma[client] = true;
+			SetEntityMoveType(client, MOVETYPE_WALK);
+			SetEntityRenderMode(client, RENDER_NORMAL);
+			SetEntityRenderColor(client, 255, 255, 255, 255);	
+			PrintToChat(client,"\x04[SM_Franug-JailPlugins] \x05Ya no eres un FANTASMA");
 		}
 	}
 	new WeaponIndex = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
@@ -3027,7 +3047,23 @@ public Action:TrainerVsGroudonTimer(Handle:timer, any:client)
 	}	
 	BorrarPuertas();
 }
-
+public Action:MonstruoVsRobot(Handle:timer, any:client)
+{
+	PrintToChatAll("\x04RONDA ESPECIAL!!");
+	PrintToChatAll("\x04MONSTRUO \x01VS \x04MEGA ROBOT!!");				
+	if (IsClientInGame(client) && Client_IsValid(client))
+	{
+		if (GetClientTeam(client) == CS_TEAM_CT)
+		{
+			ConvertirRobot(client);
+		}
+		if (GetClientTeam(client) == CS_TEAM_T)
+		{
+			ConvertirMonstruo(client);
+		}		
+	}	
+	BorrarPuertas();
+}
 public Action:Regenerate(Handle:timer, any:client)
 {
 	if (Client_IsValid(client) && IsClientInGame(client))
@@ -3771,16 +3807,20 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 {
     if (buttons & IN_USE) 
 	{
+		PrintToChat(client, "Batman ha pulsado la E");
 		if (Client_IsValid(client) && IsPlayerAlive(client))
 		{
+			PrintToChatClient(client, "Eres un cliente valido");
 			if (g_Batman[client])
 			{
+				PrintToChatClient(client, "Eres Batman");
 				new target_index = GetClientAimTarget(client, true);
 				new target = GetClientOfUserId(target_index);
 				decl Float:ClientOrigin[3],Float:TargetOrigin[3], Float:Distance;
 				
 				if (IsPlayerAlive(target))
 				{
+					PrintToChatClient(client, "El objetivo esta+ vivo");
 					GetClientAbsOrigin(client, ClientOrigin);	
 					GetClientAbsOrigin(target, TargetOrigin);	
 
@@ -3788,8 +3828,10 @@ public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:ang
 					
 					if (Distance <= 100.0)
 					{
+						PrintToChatClient(client, "El objetivo esta a distancia");
 						if (g_Golpeado[client])
 						{
+							PrintToChatClient(client, "Golpeado");
 							new randslap = GetRandomInt(10, 500);
 							SlapPlayer(target, randslap, true);
 							g_Golpeado[client] = true;
@@ -4975,6 +5017,11 @@ public Action:Event_RoundStart(Handle:event, const String:name[], bool:dontBroad
 				CreateTimer(3.0, TrainerVsGroudonTimer, client);
 				g_RondaEspecial = true;
 			}
+		case 3:
+			{
+				CreateTimer(3.0, MonstruoVsRobot, client);
+				g_RondaEspecial = true;
+			}
 		}	
 	}
 }
@@ -5412,7 +5459,7 @@ public Action:DID(clientId)
 	AddMenuItem(menu, "m_iMisil", "Comprar MISIL - 7 Creditos");
 	AddMenuItem(menu, "m_iRambo", "Comprar metralleta RAMBO - 7 Creditos");
 	AddMenuItem(menu, "m_iInvulnerable", "INVULNERABLE 20 segundos - 7 Creditos");
-	//AddMenuItem(menu, "m_iExplosiva", "Comprar MUNICION EXPLOSIVA  - 8 Creditos");
+	AddMenuItem(menu, "m_iExplosiva", "Comprar MUNICION EXPLOSIVA  - 8 Creditos");
 	AddMenuItem(menu, "m_iDisfraces", "Disfrazarse  - 8 Creditos");
 	AddMenuItem(menu, "m_iAWP", "Comprar AWP - 8 Creditos");
 	AddMenuItem(menu, "m_iSmall", "Hacerse DIMINUTO - 9 Creditos");
