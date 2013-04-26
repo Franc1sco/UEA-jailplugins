@@ -43,6 +43,7 @@
 * Lanzar Munición Explosiva
 * Rondas Especiales
 * Activar/Desactivar Fantasma
+* Los admins solo obtienen un crédito extra al matar
 */
 
 /* ATAJOS
@@ -4733,8 +4734,8 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 		g_iCredits[attacker] += GetConVarInt(cvarCreditsKill);
 		if (Client_IsAdmin(attacker))
 		{
-			PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu cuota. Recibes 2 creditos mas");
-			g_iCredits[attacker] += 2;
+			PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu cuota. Recibes 1 creditos mas");
+			g_iCredits[attacker] += 1;
 		}
 		
 		if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
