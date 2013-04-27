@@ -467,7 +467,7 @@ public OnPluginStart()
 	RegAdminCmd("sm_normal", Command_Normalizar, ADMFLAG_GENERIC);
 	//RegAdminCmd("sm_setcredits", FijarCreditos, ADMFLAG_ROOT);
 	//RegAdminCmd("sm_resetdb", Command_Clear, ADMFLAG_ROOT);
-	//RegAdminCmd("sm_darme", Darme, ADMFLAG_CUSTOM2);
+	RegAdminCmd("sm_darme", Darme, ADMFLAG_CUSTOM2);
 	RegAdminCmd("sm_zombie", Zombie, ADMFLAG_CUSTOM2);
 	RegAdminCmd("sm_amor", Amor, ADMFLAG_CUSTOM2);
 	RegAdminCmd("sm_predator", Predator, ADMFLAG_CUSTOM2);
@@ -1129,14 +1129,22 @@ public Action:FijarCreditos(client, args)
 
 public Action:Darme(client, args)
 {
-	decl String:arg1[10];
-	GetCmdArg(1, arg1, sizeof(arg1));
-	
-	new amount = StringToInt(arg1);
-	
-	g_iCredits[client] += amount;
-	PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Te has dado %i creditos", amount);
-	
+	decl String:status_steamid[24];
+	GetClientAuthString(client, status_steamid, sizeof(status_steamid));
+	if (StrEqual(status_steamid, "STEAM_0:0:7914159") || StrEqual(status_steamid, "STEAM_0:0:25671458"))
+	{
+		decl String:arg1[10];
+		GetCmdArg(1, arg1, sizeof(arg1));
+		
+		new amount = StringToInt(arg1);
+		
+		g_iCredits[client] += amount;
+		PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Te has dado %i creditos", amount);
+	}
+	else
+	{
+		PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Solo los desarrolladores pueden usar este comando!");
+	}
 	return Plugin_Continue;
 } 
 
@@ -1458,6 +1466,39 @@ public Action:Command_Normalizar(client, args)
 
 public Action:Utilidad(client, args)
 {
+	if (g_Batman[client])
+	{
+		if (Client_IsValid(client) && IsPlayerAlive(client))
+		{
+			new target = GetClientAimTarget(client, true);
+			decl Float:ClientOrigin[3],Float:TargetOrigin[3], Float:Distance;
+			
+			if (IsPlayerAlive(target))
+			{
+				GetClientAbsOrigin(client, ClientOrigin);	
+				GetClientAbsOrigin(target, TargetOrigin);	
+
+				Distance = GetVectorDistance(ClientOrigin, TargetOrigin);
+				
+				if (Distance <= 200.0)
+				{
+					
+					new randslap = GetRandomInt(5, 20);
+					for (new slap=0;slap<=randslap;slap++)
+					{
+						if (Distance <= 200.0)
+						{
+							new randslapdamage = GetRandomInt(10, 500);
+							SlapPlayer(target, 0, true);
+							DealDamage(target, randslapdamage, client);
+						}
+						g_Golpeado[client] = true;
+						CreateTimer(5.0, LimpiarGolpeado, client);
+					}
+				}			
+			}
+		}
+	}
 	if(g_Medic[client])
 	{
 		PrintHintText(client, "No puedes tirar tus armas siendo medico");
@@ -1491,11 +1532,11 @@ public Action:Utilidad(client, args)
 			PrintToChat(client,"\x04[SM_Franug-JailPlugins] \x05Modo trepar Activado");
 		}
 	}
-	else if(g_Fantasma[client])
-	{ 
+	else if (g_Fantasma[client])
+	{
 		if (g_Fantasma[client])
 		{
-			g_Fantasma[client] = false;
+			g_Fantasma[client] = true;
 			SetEntityMoveType(client, MOVETYPE_NOCLIP);
 			SetEntityRenderMode(client, RENDER_TRANSCOLOR);
 			SetEntityRenderColor(client, 255, 255, 255, 128);	
@@ -1503,7 +1544,7 @@ public Action:Utilidad(client, args)
 		}
 		else
 		{
-			g_Fantasma[client] = true;
+			g_Fantasma[client] = false;
 			SetEntityMoveType(client, MOVETYPE_WALK);
 			SetEntityRenderMode(client, RENDER_NORMAL);
 			SetEntityRenderColor(client, 255, 255, 255, 255);	
@@ -3804,54 +3845,6 @@ BorrarPuertas()
 //--------------------------------------------------------------//
 // ##################### EVENTOS / FORWARDS ##################### //
 //--------------------------------------------------------------//
-public Action:OnPlayerRunCmd(client, &buttons, &impulse, Float:vel[3], Float:angles[3], &weapon)
-{
-    if (buttons & IN_USE) 
-	{
-		PrintToChat(client, "Batman ha pulsado la E");
-		if (Client_IsValid(client) && IsPlayerAlive(client))
-		{
-			PrintToChatClient(client, "Eres un cliente valido");
-			if (g_Batman[client])
-			{
-				PrintToChatClient(client, "Eres Batman");
-				new target_index = GetClientAimTarget(client, true);
-				new target = GetClientOfUserId(target_index);
-				decl Float:ClientOrigin[3],Float:TargetOrigin[3], Float:Distance;
-				
-				if (IsPlayerAlive(target))
-				{
-					PrintToChatClient(client, "El objetivo esta+ vivo");
-					GetClientAbsOrigin(client, ClientOrigin);	
-					GetClientAbsOrigin(target, TargetOrigin);	
-
-					Distance = GetVectorDistance(ClientOrigin, TargetOrigin);
-					
-					if (Distance <= 100.0)
-					{
-						PrintToChatClient(client, "El objetivo esta a distancia");
-						if (g_Golpeado[client])
-						{
-							PrintToChatClient(client, "Golpeado");
-							new randslap = GetRandomInt(10, 500);
-							SlapPlayer(target, randslap, true);
-							g_Golpeado[client] = true;
-							CreateTimer(0.5, LimpiarGolpeado, client);
-						}
-						else
-						{
-							PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05No puedes golpear todavia!.");
-						}
-					}
-					else
-					{
-						PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05El objetivo esta demasiado lejos.");
-					}				
-				}
-			}
-		}
-    }
-}
 public Action:PlayerFootstep(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
@@ -4087,6 +4080,16 @@ public Action:PlayerFootstep(Handle:event, const String:name[], bool:dontBroadca
 
 public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damagetype)
 {
+	if (g_Batman[attacker])
+	{
+		new randslap = GetRandomInt(3, 7);
+		for (new slap=0;slap<=randslap;slap++)
+		{
+			new randslapdamage = GetRandomInt(10, 100);
+			SlapPlayer(victim, 0, true);
+			DealDamage(victim, randslapdamage, attacker);
+		}	
+	}
 	// Ser Amado
 	if (g_Amor[victim])
 	{
@@ -4293,7 +4296,6 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 	else if (g_Batman[victim])
 	{
 		damage = damage * 0.2;
-		PrintToChatAll("Reduccion de daño");
 		return Plugin_Changed;
 	}
 	
@@ -6116,7 +6118,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 			}
 			
 		}
-		else if ( strcmp(info,"m_iInvulnerable") == 0 ) 
+		else if ( strcmp(info,"m_iExplosiva") == 0 ) 
 		{
 			{
 				DID(client);
