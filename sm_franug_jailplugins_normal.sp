@@ -159,6 +159,7 @@
 // ======================================================================
 
 new Handle:g_hRegenTimer[MAXPLAYERS+1];
+new Handle:g_hBatmanTimer[MAXPLAYERS+1];
 new Handle:g_Cvar_Delay = INVALID_HANDLE;
 new Handle:hGetWeaponPosition = INVALID_HANDLE;
 new Handle:cvarCreditsMax = INVALID_HANDLE;
@@ -1482,26 +1483,43 @@ public Action:Utilidad(client, args)
 				
 				if (Distance <= 200.0)
 				{
-					
-					new randslap = GetRandomInt(5, 20);
-					for (new slap=0;slap<=randslap;slap++)
+					if (g_Golpeado[client])
 					{
-						if (Distance <= 200.0)
+						new randslap = GetRandomInt(5, 20);
+						new Float:cooldown = randslap * 0.4;
+						g_Golpeado[client] = false;
+						CreateTimer(Float:cooldown, LimpiarGolpeado, client);
+						new slap = 0;
+						while (slap <= randslap)
 						{
-							new randslapdamage = GetRandomInt(10, 500);
-							SlapPlayer(target, 0, true);
-							DealDamage(target, randslapdamage, client);
+							if (g_hBatmanTimer[client] == INVALID_HANDLE)
+							{
+								g_hBatmanTimer[client] = CreateTimer(0.4, BatmanTimer, client, TIMER_REPEAT);
+								if (Client_IsValid(client) && IsClientInGame(client))
+								{
+									new randslapdamage = GetRandomInt(10, 500);
+									SlapPlayer(target, 0, true);
+									DealDamage(target, randslapdamage, client);
+									slap++;
+								}
+							}	
 						}
-						g_Golpeado[client] = true;
-						CreateTimer(5.0, LimpiarGolpeado, client);
 					}
-				}			
+					else
+					{
+						PrintToChat(client,"\x04[SM_Franug-JailPlugins] \x05No puedes pegar todavia!");
+					}
+				}	
+				else
+				{
+					PrintToChat(client,"\x04[SM_Franug-JailPlugins] \x05No estas a la distancia adecuada!");
+				}
 			}
 		}
 	}
 	if(g_Medic[client])
 	{
-		PrintHintText(client, "No puedes tirar tus armas siendo medico");
+		PrintHintText(client, "\x04[SM_Franug-JailPlugins] \x05No puedes tirar tus armas siendo medico");
 		return Plugin_Handled;
 	}
 	else if(g_Paloma[client] || g_Pene[client])
@@ -3002,6 +3020,11 @@ ConvertirNoMuerto(client)
 //--------------------------------------------------------------//
 // ##################### TIMERS / FUNCIONES ##################### //
 //--------------------------------------------------------------//
+public Action:BatmanTimer(Handle:timer, any:client)
+{
+	g_hBatmanTimer[client] = INVALID_HANDLE;
+	KillTimer(timer);
+}
 UsoGanzua(client)
 {
 	decl Ent;
@@ -3110,21 +3133,18 @@ public Action:Regenerate(Handle:timer, any:client)
 {
 	if (Client_IsValid(client) && IsClientInGame(client))
 	{
-		if (g_Medic[client])
-		{
-			new ClientHealth = GetClientHealth(client);
+		new ClientHealth = GetClientHealth(client);
 
-			if(ClientHealth < 250)
-			{
-				new Regenerated = ClientHealth + 10;
-				SetEntityHealth(client, Regenerated);
-			}
-			else
-			{
-				SetEntityHealth(client, 250);
-				g_hRegenTimer[client] = INVALID_HANDLE;
-				KillTimer(timer);
-			}
+		if(ClientHealth < 250)
+		{
+			new Regenerated = ClientHealth + 10;
+			SetEntityHealth(client, Regenerated);
+		}
+		else
+		{
+			SetEntityHealth(client, 250);
+			g_hRegenTimer[client] = INVALID_HANDLE;
+			KillTimer(timer);
 		}
 	}
 }
@@ -3132,7 +3152,7 @@ public Action:LimpiarGolpeado(Handle:timer, any:client)
 {
 	if (g_Golpeado[client])
 	{
-		g_Golpeado[client] = false;
+		g_Golpeado[client] = true;
 	}
 }
 public Action:AwpDescongelar(Handle:timer, any:client)
@@ -4080,16 +4100,6 @@ public Action:PlayerFootstep(Handle:event, const String:name[], bool:dontBroadca
 
 public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damagetype)
 {
-	if (g_Batman[attacker])
-	{
-		new randslap = GetRandomInt(3, 7);
-		for (new slap=0;slap<=randslap;slap++)
-		{
-			new randslapdamage = GetRandomInt(10, 100);
-			SlapPlayer(victim, 0, true);
-			DealDamage(victim, randslapdamage, attacker);
-		}	
-	}
 	// Ser Amado
 	if (g_Amor[victim])
 	{
@@ -4108,8 +4118,8 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 		{
 			if (GetClientTeam(attacker) != GetClientTeam(victim))
 			{
-				new Float:iVec[ 3 ];
-				GetClientAbsOrigin( victim, Float:iVec );
+				new Float:iVec[3];
+				GetClientAbsOrigin(victim, Float:iVec);
 				
 				TE_SetupExplosion( iVec, g_ExplosionSprite, 5.0, 1, 0, 50, 40, iNormal );
 				TE_SendToAll();
@@ -4345,7 +4355,7 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 	}
 	
 	if(!Client_IsValid(attacker))
-	return Plugin_Continue;
+		return Plugin_Continue;
 	
 	// Evitar otras armas congeladoras
 
@@ -4354,10 +4364,11 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 	new String:g_Weapon[32];
 	GetClientWeapon(attacker, g_Weapon, sizeof(g_Weapon));
 	
-	if (WeaponIndex < 0) return Plugin_Continue;
+	if (WeaponIndex < 0) 
+		return Plugin_Continue;
+		
 	if (IsValidEntity(WeaponIndex) && AwpFreeze[WeaponIndex]) 
 	{
-		// Evitar otras armas congeladoras
 		if (StrEqual(g_Weapon, "weapon_awp"))
 		{
 			SetEntityMoveType(victim, MOVETYPE_NONE);
@@ -4884,9 +4895,12 @@ public Action:Event_hurt(Handle:event, const String:name[], bool:dontBroadcast)
 			Shake(client, AMP_SHAKE, DUR_SHAKE);
 		}
 	}
-	if(g_hRegenTimer[client] == INVALID_HANDLE)
+	if (g_Medic[client])
 	{
-		g_hRegenTimer[client] = CreateTimer(1.0, Regenerate, client, TIMER_REPEAT);
+		if (g_hRegenTimer[client] == INVALID_HANDLE)
+		{
+			g_hRegenTimer[client] = CreateTimer(1.0, Regenerate, client, TIMER_REPEAT);
+		}
 	}
 }
 
@@ -5047,6 +5061,7 @@ public Action:Event_RoundEnd(Handle: event , const String: name[] , bool: dontBr
 		if (IsClientInGame(i) && Client_IsValid(i) &&  GetClientTeam(i) != 1)
 		{
 			g_iCredits[i] += 2;
+			PrintToChatAll("\x04[SM_Franug-JailPlugins] \x05Cada final de ronda, todos los que estan en un equipo reciben 2 creditos gratis");
 			if (Client_IsAdmin(i))
 			{
 				PrintToChat(i, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu couta. Recibes 2 creditos mas");
@@ -5056,7 +5071,6 @@ public Action:Event_RoundEnd(Handle: event , const String: name[] , bool: dontBr
 		}
 	}
 	Fin_Ronda = true;
-	PrintToChatAll("\x04[SM_Franug-JailPlugins] \x05Cada final de ronda, todos los que estan en un equipo reciben 2 creditos gratis");
 }
 
 public OnClientPostAdminCheck(client)
@@ -5308,7 +5322,7 @@ public Action:HookTraceAttack(victim, &attacker, &inflictor, &Float:damage, &dam
 				if (!g_cosa[victim])
 				{
 					if (GetClientHealth(victim) == 250)
-					return;
+						return;
 					
 					if (GetClientHealth(victim) < 250)
 					{					
