@@ -21,7 +21,7 @@
 
 public LoadConVars()
 {
-	
+	EnableNoBlock = CreateConVar("sm_enablenoblock", "1", "Activar/Desactivar NoBlock en el spawn", _, true, 0.0, true, 1.0);
 	//cvType = CreateConVar("sm_avp_dissolve_type", "3");
 	//cvDelay = CreateConVar("sm_avp_dissolve_delay","0.1");
 

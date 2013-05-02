@@ -360,8 +360,19 @@ stock Normalizar(client)
 		}
 		if (GetClientTeam(client) == CS_TEAM_CT)
 		{
-			SetEntityModel(client, "models/player/elis/po/police.mdl");
-		}		
+			new rand = GetRandomInt(1, 2);
+			switch (rand)
+			{
+				case 1:
+					{
+						SetEntityModel(client, "models/player/UEA/urban_admin/ct_urban.mdl");	
+					}
+				case 2:
+					{
+						SetEntityModel(client, "models/player/UEA/ct_admin/ct_gign.mdl");
+					}
+			}
+		}	
 	}
 	if (g_Fantasma[client])
 	{
@@ -379,7 +390,18 @@ stock Normalizar(client)
 		}
 		if (GetClientTeam(client) == CS_TEAM_CT)
 		{
-			SetEntityModel(client, "models/player/elis/po/police.mdl");
+			new rand = GetRandomInt(1, 2);
+			switch (rand)
+			{
+				case 1:
+					{
+						SetEntityModel(client, "models/player/UEA/urban_admin/ct_urban.mdl");	
+					}
+				case 2:
+					{
+						SetEntityModel(client, "models/player/UEA/ct_admin/ct_gign.mdl");
+					}
+			}
 		}		
 	}
 	if (g_Godmode[client])

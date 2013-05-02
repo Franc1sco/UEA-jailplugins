@@ -39,11 +39,13 @@
 */
 
 /* 2.8.4
-* Lanzar Batman
-* Lanzar Munición Explosiva
+* Batman
+* Munición Explosiva
 * Rondas Especiales
 * Activar/Desactivar Fantasma
-* Los admins solo obtienen un crédito extra al matar
+* Los admins solo obtienen un crédito extra al matar y al final de ronda
+* Solucionado un error con los skins de CT en los LR
+* NoBlock al spawnearse para evitar rupias o sillas :)
 */
 
 /* ATAJOS
@@ -158,6 +160,7 @@
 //	HANDLES
 // ======================================================================
 
+new Handle:EnableNoBlock;
 new Handle:g_hRegenTimer[MAXPLAYERS+1];
 new Handle:g_hBatmanTimer[MAXPLAYERS+1];
 new Handle:g_Cvar_Delay = INVALID_HANDLE;
@@ -3020,6 +3023,11 @@ ConvertirNoMuerto(client)
 //--------------------------------------------------------------//
 // ##################### TIMERS / FUNCIONES ##################### //
 //--------------------------------------------------------------//
+public Action:BlockClients(Handle:timer, any:client)
+{
+	SetEntData(client, g_offsCollisionGroup, 5, 4, true);
+}
+
 public Action:BatmanTimer(Handle:timer, any:client)
 {
 	g_hBatmanTimer[client] = INVALID_HANDLE;
@@ -5047,7 +5055,11 @@ public Action:PlayerSpawn(Handle:event, const String:name[], bool:dontBroadcast)
 {
 	new client = GetClientOfUserId(GetEventInt(event, "userid"));
 
-		
+	if (GetConVarBool(EnableNoBlock))
+	{
+		SetEntData(client, g_offsCollisionGroup, 2, 4, true);
+		CreateTimer(5.0, BlockClients, client);
+	}
 	if(GetClientTeam(client) == 2 || GetClientTeam(client) == 3)
 		CreateTimer(1.0, MensajesSpawn, client);
 
@@ -5064,8 +5076,8 @@ public Action:Event_RoundEnd(Handle: event , const String: name[] , bool: dontBr
 			PrintToChatAll("\x04[SM_Franug-JailPlugins] \x05Cada final de ronda, todos los que estan en un equipo reciben 2 creditos gratis");
 			if (Client_IsAdmin(i))
 			{
-				PrintToChat(i, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu couta. Recibes 2 creditos mas");
-				g_iCredits[i] += 2;
+				PrintToChat(i, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu couta. Recibes 1 creditos mas");
+				g_iCredits[i] += 1;
 			}
 			
 		}
@@ -6167,35 +6179,6 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 		{
 			{
 				DMH(client);
-				/* 				
-				DID(client);
-				if (g_iCredits[client] >= 8)
-				{
-				if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
-				{
-				if (g_cosa[client])
-				{
-				
-				PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05No puedes comprar siendo un ser especial!");
-				return;
-				}
-				
-				SetEntityModel(client, "models/props/de_train/barrel.mdl");
-				
-				g_iCredits[client] -= 8;
-				
-				PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Ahora eres un Barril! Tus creditos: %i (-8)", g_iCredits[client]);
-				}
-				else
-				{
-				PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Tienes que estar vivo para poder comprar premios");
-				}
-				}
-				else
-				{
-				PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Tus creditos: %i (No tienes suficiente Creditos! Necesitas 8)", g_iCredits[client]);
-				} 
-				*/
 			}
 			
 		}
