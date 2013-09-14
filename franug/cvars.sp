@@ -21,7 +21,7 @@
 
 public LoadConVars()
 {
-	EnableNoBlock = CreateConVar("sm_enablenoblock", "1", "Activar/Desactivar NoBlock en el spawn", _, true, 0.0, true, 1.0);
+	EnableNoBlock = CreateConVar("sm_enablenoblock", "0", "Activar/Desactivar NoBlock en el spawn", _, true, 0.0, true, 1.0);
 	//cvType = CreateConVar("sm_avp_dissolve_type", "3");
 	//cvDelay = CreateConVar("sm_avp_dissolve_delay","0.1");
 
@@ -60,9 +60,9 @@ public LoadConVars()
 	hPush1 = CreateConVar("sm_hpush2","1.0", "Salto del Zombie");
 	hHeight1 = CreateConVar("sm_hheight2","3.0", "Altura del salto del Zombie");
 
-	css_avp_damage = CreateConVar("sm_avp_alienqueen_damage", "1500", "Daño hecho por la Reina Alien", FCVAR_PLUGIN);
-	css_avp_radius = CreateConVar("sm_avp_alienqueen_radius", "25", "Radio de inicio", FCVAR_PLUGIN);		
-	css_avp_pushforce = CreateConVar("sm_avp_alienqueen_pushforce", "1000", "Fuerza del ácido", FCVAR_PLUGIN);
+	css_avp_damage = CreateConVar("sm_avp_alienqueen_damage", "3000", "Daño hecho por la Reina Alien", FCVAR_PLUGIN);
+	css_avp_radius = CreateConVar("sm_avp_alienqueen_radius", "300", "Radio de inicio", FCVAR_PLUGIN);		
+	css_avp_pushforce = CreateConVar("sm_avp_alienqueen_pushforce", "3000", "Fuerza del ácido", FCVAR_PLUGIN);
 
 	g_cvJumpBoost = CreateConVar("sm_doublejump_boost", "350.0","The amount of vertical boost to apply to double jumps.");
 	g_cvJumpMax = CreateConVar("sm_doublejump_max", "1","The maximum number of re-jumps allowed while already jumping.");
@@ -71,7 +71,7 @@ public LoadConVars()
 	
 	Dif = CreateConVar("sm_creditsdif", "2", "Valor por el que se divide el precio de los seres especiales");
 	
-	RondasEspeciales = CreateConVar("sm_rondasespeciales", "0", "Activar o desactivar rondas especiales");
+	RondasEspeciales = CreateConVar("sm_rondasespeciales", "1", "Activar o desactivar rondas especiales");
 	
 	// CVARS PREMIOS
 	
@@ -104,15 +104,15 @@ public LoadConVars()
 	CostSpiderman = CreateConVar("sm_cost_spiderman", "16", "Coste del SPIDERMAN");		
 
 	HealthReina = CreateConVar("sm_health_reina", "2500", "Vida de la REINA ALIEN");
-	SpeedReina = CreateConVar("sm_speed_reina", "0.8", "Velocidad de la REINA ALIEN");
+	SpeedReina = CreateConVar("sm_speed_reina", "0.9", "Velocidad de la REINA ALIEN");
 	CostReina = CreateConVar("sm_cost_reina", "16", "Coste de la REINA ALIEN");	
 	
-	HealthMonstruo = CreateConVar("sm_health_monstruo", "3000", "Vida del MONSTRUO");
-	SpeedMonstruo = CreateConVar("sm_speed_monstruo", "0.9", "Velocidad del MONSTRUO");
+	HealthMonstruo = CreateConVar("sm_health_monstruo", "2500", "Vida del MONSTRUO");
+	SpeedMonstruo = CreateConVar("sm_speed_monstruo", "0.8", "Velocidad del MONSTRUO");
 	CostMonstruo = CreateConVar("sm_cost_monstruo", "17", "Coste del MONSTRUO");
 	
-	HealthRobot = CreateConVar("sm_health_soldado", "3000", "Vida del MEGA ROBOT");
-	SpeedRobot = CreateConVar("sm_speed_soldado", "0.9", "Velocidad del MEGA ROBOT");
+	HealthRobot = CreateConVar("sm_health_soldado", "2500", "Vida del MEGA ROBOT");
+	SpeedRobot = CreateConVar("sm_speed_soldado", "0.8", "Velocidad del MEGA ROBOT");
 	CostRobot = CreateConVar("sm_cost_soldado", "17", "Coste del MEGA ROBOT");		
 
 	HealthGroudon = CreateConVar("sm_health_groudon", "4000", "Vida del GROUDON");

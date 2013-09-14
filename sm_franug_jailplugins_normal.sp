@@ -252,7 +252,7 @@ new Handle:CostBatman;
 // ======================================================================
 
 new bool:g_Explosiva[MAXPLAYERS+1] = {false, ...};
-new bool:g_Golpeado[MAXPLAYERS+1] = {false, ...};
+new bool:g_Golpeado[MAXPLAYERS+1] = {true, ...};
 new bool:g_Batman[MAXPLAYERS+1] = {false, ...};
 new bool:g_Amor[MAXPLAYERS+1] = {false, ...};
 new bool:g_Zombie[MAXPLAYERS+1] = {false, ...};
@@ -300,6 +300,7 @@ new bool:g_ZResucitar[MAXPLAYERS + 1] = {false, ...};
 //	INT / STRING / FLOAT
 // ======================================================================
 
+new g_offsCollisionGroup;
 new Float:g_flBoost = 250.0;
 new Float:iNormal[ 3 ] = { 0.0, 0.0, 1.0 };
 new Float:g_fClientLastScale[MAXPLAYERS+1] = {1.0, ... };
@@ -445,6 +446,8 @@ public OnPluginStart()
 	CreateConVar("sm_Franug-JailPlugins", VERSION, "plugin info", FCVAR_PLUGIN|FCVAR_SPONLY|FCVAR_REPLICATED|FCVAR_NOTIFY|FCVAR_DONTRECORD);
 	
 	/* ==================== OFFSETS ==================== */
+	
+	g_offsCollisionGroup = FindSendPropOffs("CBaseEntity", "m_CollisionGroup");
 	
 	VelocityOffset_0=FindSendPropOffs("CBasePlayer","m_vecVelocity[0]");
 	
@@ -2991,10 +2994,11 @@ UsoGanzua(client)
 	GetClientAbsOrigin(client, ClientOrigin);	
 	
 	Ent = GetClientAimTarget(client, false);
-	GetEdictClassname(Ent, ClassName, 255);
 	
 	if (!IsValidEdict(Ent))
 		return;
+	
+	GetEdictClassname(Ent, ClassName, 255);
 	
 	for (new i=0;i<sizeof(doorlist);i++)
 	{
@@ -4703,12 +4707,13 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	else
 	{
 		g_iCredits[attacker] += GetConVarInt(cvarCreditsKill);
+		/*
 		if (Client_IsAdmin(attacker))
 		{
 			PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu cuota. Recibes 1 creditos mas");
 			g_iCredits[attacker] += 1;
 		}
-		
+		*/
 		if (g_iCredits[attacker] < GetConVarInt(cvarCreditsMax))
 		{
 			PrintToChat(attacker, "\x04[SM_Franug-JailPlugins] \x05Tus creditos: %i (+%d)", g_iCredits[attacker], GetConVarInt(cvarCreditsKill));
@@ -5023,13 +5028,14 @@ public Action:Event_RoundEnd(Handle: event , const String: name[] , bool: dontBr
 		if (IsClientInGame(i) && Client_IsValid(i) &&  GetClientTeam(i) != 1)
 		{
 			g_iCredits[i] += 2;
-			PrintToChatAll("\x04[SM_Franug-JailPlugins] \x05Cada final de ronda, todos los que estan en un equipo reciben 2 creditos gratis");
+			PrintToChat(i, "\x04[SM_Franug-JailPlugins] \x05Cada final de ronda, todos los que estan en un equipo reciben 2 creditos gratis");
+			/*
 			if (Client_IsAdmin(i))
 			{
-				PrintToChat(i, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu couta. Recibes 1 creditos mas");
+				PrintToChat(i, "\x04[SM_Franug-JailPlugins] \x05Gracias por abonar tu couta. Recibes 1 credito mas");
 				g_iCredits[i] += 1;
 			}
-			
+			*/
 		}
 	}
 	Fin_Ronda = true;
@@ -5450,15 +5456,8 @@ public Action:DID(clientId)
 	AddMenuItem(menu, "m_iTrainer", "Convertirse en ENTRENADOR POKEMON - 12 Creditos");	
 	AddMenuItem(menu, "m_iZombie", "Convertirse en ZOMBIE (Solo T) - 12 Creditos");
 	AddMenuItem(menu, "m_iIronman", "Convertirse en IRONMAN (Solo CT) - 14 Creditos");	
-	if (Client_IsAdmin(clientId))
-	{
-		AddMenuItem(menu, "m_iBicho", "Convertirse en BICHO IGNEO (Solo ADMINS T) - 14 Creditos");
-	}
-	AddMenuItem(menu, "m_iMedic", "Convertirse en MEDICO (Solo CT) - 14 Creditos");	
-	if (Client_IsAdmin(clientId))
-	{
-		AddMenuItem(menu, "m_iSmith", "Convertirse en AGENTE SMITH (Solo ADMINS CT) - 15 Creditos");	
-	}
+	AddMenuItem(menu, "m_iBicho", "Convertirse en BICHO IGNEO (Solo ADMINS T) - 14 Creditos");
+	AddMenuItem(menu, "m_iSmith", "Convertirse en AGENTE SMITH (Solo ADMINS CT) - 15 Creditos");
 	AddMenuItem(menu, "m_iSoldado", "Convertirse en SOLDADO CIBERNETICO (solo CT) - 15 Creditos");
 	AddMenuItem(menu, "m_iPikachu", "Convertirse en POKEMON PIKACHU - 15 Creditos");	
 	AddMenuItem(menu, "m_iSpiderman", "Convertirse en SPIDERMAN (Solo CT) - 16 Creditos");	
