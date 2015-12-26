@@ -1,3 +1,7 @@
+## 2.8.5
+
+- Corregido un bug en el que aparecían paredes invisibles que bloqueaban los disparos
+
 ## 2.8.4
 
 - Batman

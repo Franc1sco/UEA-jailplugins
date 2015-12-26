@@ -497,14 +497,14 @@ stock Normalizar(client)
 		}
 		
 	}
+	if(g_Attachments[client] != 0 && IsValidEdict(g_Attachments[client]) && IsValidEntity(g_Attachments[client]))
+	{
+		AcceptEntityInput(g_Attachments[client], "Kill");
+		g_Attachments[client]=0;
+	}
 	if (g_Pene[client])
 	{
 		g_Pene[client] = false;
-		if(g_Attachments[client] != 0 && IsValidEdict(g_Attachments[client]))
-		{
-			RemoveEdict(g_Attachments[client]);
-			g_Attachments[client]=0;
-		}
 		SetEntityRenderMode(client, RENDER_NORMAL);
 		SetEntityRenderColor(client, 255, 255, 255, 255);
 		

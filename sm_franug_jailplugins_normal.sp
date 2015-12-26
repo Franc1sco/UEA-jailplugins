@@ -22,14 +22,14 @@
 #include <sdktools_sound>
 #include <cstrike>
 #include <lastrequest>
-#include <colors>
+#include <multicolors>
 #include <sdkhooks>
 #include <cssthrowingknives>
 #include <smlib>
 
 /* ==================== DEFINES ==================== */
 
-#define VERSION "2.8.4"
+#define VERSION "2.8.5"
 
 #define AMP_SHAKE        50.0
 #define DUR_SHAKE        1.0
@@ -1026,7 +1026,7 @@ public Action:VerCreditosClient(client, args)
 
 public Action:Skin(client, args)
 {
-	if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+	if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 	{
 		if (g_cosa[client])
 		{
@@ -1156,7 +1156,7 @@ public Action:Resucitar(client,args)
 			{ 
 				if (count2 > GetConVarInt(CT_Vivos))
 				{ 
-					if (!IsPlayerAlive(client) && GetClientTeam(client) != 1)
+					if (!IsPlayerAlive(client) && GetClientTeam(client) > 1)
 					{
 						if (g_iCredits[client] >= 4)
 						{
@@ -1238,7 +1238,7 @@ public Action:ZResucitar(client,args)
 		{ 
 			if (count2 > GetConVarInt(CT_Vivos))
 			{ 
-				if (GetClientTeam(client) != 1 && !IsPlayerAlive(client))
+				if (GetClientTeam(client) > 1 && !IsPlayerAlive(client))
 				{
 					if (!g_ZResucitar[client])
 					{
@@ -1299,7 +1299,7 @@ public Action:ZResucitar(client,args)
 
 public Action:Curarse(client,args)
 {
-	if (IsPlayerAlive(client) && GetClientTeam(client) != 1)
+	if (IsPlayerAlive(client) && GetClientTeam(client) > 1)
 	{
 		if (g_iCredits[client] >= 1)
 		{
@@ -1368,7 +1368,7 @@ public Action:penisc(client, args)
 	for (new i = 0; i < TargetCount; i++) 
 	{ 
 		new iClient = TargetList[i]; 
-		if (IsClientInGame(iClient) && IsPlayerAlive(iClient)) 
+		if (IsClientInGame(iClient) && IsPlayerAlive(iClient) && GetClientTeam(iClient) > 1) 
 		{ 
 			ConvertirPene(iClient);
 			PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05convertido en pene el jugador %N", iClient);
@@ -3131,7 +3131,7 @@ public Action:RemoveParticle(Handle:timer, any:particle)
 	if (IsValidEdict(particle))
 	{
 		AcceptEntityInput(particle, "Kill");
-		RemoveEdict(particle);
+		//RemoveEdict(particle);
 	}
 }
 
@@ -3139,14 +3139,9 @@ public Action:DeletePushForce(Handle:timer, any:ent)
 {
 	if (IsValidEntity(ent))
 	{
-		decl String:classname[64];
-		GetEdictClassname(ent, classname, sizeof(classname));
-		if (StrEqual(classname, "point_push", false))
-		{
-			AcceptEntityInput(ent, "Disable");
-			AcceptEntityInput(ent, "Kill"); 
-			RemoveEdict(ent);
-		}
+		AcceptEntityInput(ent, "Disable");
+		AcceptEntityInput(ent, "Kill"); 
+			//RemoveEdict(ent);
 	}
 }
 
@@ -3154,13 +3149,8 @@ public Action:DeletePointHurt(Handle:timer, any:ent)
 {
 	if (IsValidEntity(ent))
 	{
-		decl String:classname[64];
-		GetEdictClassname(ent, classname, sizeof(classname));
-		if (StrEqual(classname, "point_hurt", false))
-		{
+
 			AcceptEntityInput(ent, "Kill"); 
-			RemoveEdict(ent);
-		}
 	}
 }
 
@@ -4368,14 +4358,10 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	CreateTimer(2.0, MensajesMuerte, client);
 	SetClientThrowingKnives(client, 0);
 
-	// Borrar el Pene del mapa
-	if(g_Pene[client])
+	if(g_Attachments[client] != 0 && IsValidEdict(g_Attachments[client]) && IsValidEntity(g_Attachments[client]))
 	{
-		if(g_Attachments[client] != 0 && IsValidEdict(g_Attachments[client]))
-		{
-			RemoveEdict(g_Attachments[client]);
-			g_Attachments[client]=0;
-		}
+		AcceptEntityInput(g_Attachments[client], "Kill");
+		g_Attachments[client]=0;
 	}
 	
 	// No hay atacante
@@ -4385,6 +4371,10 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	// El atacante es la víctima
 	if (attacker == client)
 		return;
+		
+	decl String:tag[32];
+	CS_GetClientClanTag(client, tag, 32);
+	if(StrContains(tag, "*MUERTO*", false) == 0) return;
 	
 	// Obtener la mitad de los créditos de un Ser Especial al matarlo
 	if (g_cosa[client])
@@ -5056,17 +5046,17 @@ public OnGameFrame()
 {
 	for (new i = 1; i <= MaxClients; i++) 
 	{
-		if (IsClientInGame(i) && IsClientConnected(i) && GetClientTeam(i) > 1 && IsPlayerAlive(i)) 
+		if (IsClientInGame(i) && GetClientTeam(i) > 1 && IsPlayerAlive(i)) 
 		{
 			if (g_Saltador[i])
 			{
 				DoubleJump(i);
 			}
-			if (GetConVarBool(g_CvarEnable) && g_Predator[i])
+			if (g_Predator[i] && GetConVarBool(g_CvarEnable))
 			{
 				CreateBeam(i);
 			}
-			if(IsValidEdict(g_Attachments[i]))
+			if(g_Attachments[i] != 0 && IsValidEdict(g_Attachments[i]) && IsValidEntity(g_Attachments[i]))
 			{
 				new Float:ppos[3];
 				
@@ -5105,10 +5095,11 @@ public OnGameFrame()
 			{
 				Spiderman(i); 
 			}
-			new button = GetClientButtons(i);
+			
 			
 			if (g_Cloak[i])
 			{
+				new button = GetClientButtons(i);
 				if (button & IN_FORWARD || button & IN_BACK || button & IN_MOVERIGHT || button & IN_MOVELEFT)
 				{
 					SetEntityRenderMode(i, RENDER_TRANSCOLOR);
@@ -5247,10 +5238,10 @@ public Action:EventWeaponFire(Handle:event,const String:name[],bool:dontBroadcas
 public OnClientDisconnect(client)
 {
 	if (!conectado[client])
-	return;
+		return;
 	
 	if (!client || IsFakeClient(client))
-	return;
+		return;
 	
 	if (g_hTimer[client] != INVALID_HANDLE && CloseHandle(g_hTimer[client]))
 	{
@@ -5261,6 +5252,12 @@ public OnClientDisconnect(client)
 	//InsertScoreInDB(client);
 	
 	conectado[client] = false;
+	
+	if(g_Attachments[client] != 0 && IsValidEdict(g_Attachments[client]) && IsValidEntity(g_Attachments[client]))
+	{
+		AcceptEntityInput(g_Attachments[client], "Kill");
+	}
+	g_Attachments[client]=0;
 }
 
 public OnEntityCreated(entity, const String:classname[])
@@ -5440,7 +5437,7 @@ public Action:DID(clientId)
 	AddMenuItem(menu, "m_iGallina", "Convertirse en GALLINA - 5 Creditos");
 	AddMenuItem(menu, "m_iVelocidad", "Mas velocidad - 5 Creditos");
 	AddMenuItem(menu, "m_iInfiAmmo", "Municion Infinita - 6 Creditos");
-	AddMenuItem(menu, "m_iKamikaze", "Convertirse en KAMIKAZE EXPLOSIVO (Solo T) - 7 Creditos");
+	//AddMenuItem(menu, "m_iKamikaze", "Convertirse en KAMIKAZE EXPLOSIVO (Solo T) - 7 Creditos");
 	AddMenuItem(menu, "m_iMisil", "Comprar MISIL - 7 Creditos");
 	AddMenuItem(menu, "m_iRambo", "Comprar metralleta RAMBO - 7 Creditos");
 	AddMenuItem(menu, "m_iInvulnerable", "INVULNERABLE 20 segundos - 7 Creditos");
@@ -5505,7 +5502,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 1)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						
 						
@@ -5535,7 +5532,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 1)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5570,7 +5567,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 2)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5605,7 +5602,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 2)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5643,7 +5640,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 2)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5677,7 +5674,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 3)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5711,7 +5708,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 4)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5745,7 +5742,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 4)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5779,7 +5776,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 4)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5814,7 +5811,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 5)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5848,7 +5845,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 5)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5881,7 +5878,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 5)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5915,7 +5912,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 6)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -5994,7 +5991,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 7)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6030,7 +6027,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 7)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6064,7 +6061,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 7)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6099,7 +6096,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 8)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6138,7 +6135,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 8)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6171,7 +6168,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 9)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6238,7 +6235,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 10)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6275,7 +6272,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 10)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6306,7 +6303,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 			DID(client);
 			if (g_iCredits[client] >= GetConVarInt(CostTrainer))
 			{
-				if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+				if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 				{
 					if (g_cosa[client])
 					{
@@ -6342,7 +6339,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 12)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6373,7 +6370,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= 12)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (g_cosa[client])
 						{
@@ -6528,7 +6525,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostBicho))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (GetClientTeam(client) == CS_TEAM_T)
 						{
@@ -6569,7 +6566,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostMedic))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						if (GetClientTeam(client) == CS_TEAM_CT)
 						{
@@ -6736,7 +6733,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostPikachu))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						
 						if (g_cosa[client])
@@ -6845,7 +6842,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostGoku))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{		
 						if (g_cosa[client])
 						{				
@@ -6874,7 +6871,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostGroudon))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{					
 						if (g_cosa[client])
 						{
@@ -6906,7 +6903,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostFantasma))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						
 						if (g_cosa[client])
@@ -6940,7 +6937,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostPredator))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{
 						
 						if (g_cosa[client])
@@ -6971,7 +6968,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostSanta))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{					
 						if (g_cosa[client])
 						{						
@@ -7000,7 +6997,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 				DID(client);
 				if (g_iCredits[client] >= GetConVarInt(CostJack))
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{					
 						if (g_cosa[client])
 						{						
@@ -7031,7 +7028,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 
 			if (g_iCredits[client] >= 20)
 			{
-				if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+				if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 				{
 
 					if (g_cosa[client])
@@ -7066,7 +7063,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 			
 			if (g_iCredits[client] >= GetConVarInt(CostPene))
 			{
-				if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+				if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 				{
 
 					if (g_cosa[client])
@@ -7100,7 +7097,7 @@ public DIDMenuHandler(Handle:menu, MenuAction:action, client, itemNum)
 			
 			if (g_iCredits[client] >= GetConVarInt(CostBatman))
 			{
-				if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+				if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 				{
 
 					if (g_cosa[client])
@@ -7171,7 +7168,7 @@ public DisguiseMH(Handle:menu, MenuAction:action, client, itemNum)
 				DMH(client);
 				if (g_iCredits[client] >= 8)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{						
 						SetEntityModel(client, "models/props_interiors/furniture_chair03a.mdl");						
 						g_iCredits[client] -= 8;						
@@ -7196,7 +7193,7 @@ public DisguiseMH(Handle:menu, MenuAction:action, client, itemNum)
 				DMH(client);
 				if (g_iCredits[client] >= 8)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{						
 						SetEntityModel(client, "models/props/de_train/barrel.mdl");						
 						g_iCredits[client] -= 8;						
@@ -7220,24 +7217,13 @@ public DisguiseMH(Handle:menu, MenuAction:action, client, itemNum)
 				DMH(client);
 				if (g_iCredits[client] >= 8)
 				{
-					if (GetClientTeam(client) != 1 && IsPlayerAlive(client))
+					if (GetClientTeam(client) > 1 && IsPlayerAlive(client))
 					{											
 						g_iCredits[client] -= 8;						
 						PrintToChat(client, "\x04[SM_Franug-JailPlugins] \x05Te has disfrazado de CT! Tus creditos: %i (-8)", g_iCredits[client]);
 						PrintToChatAll("\x04[SM_Franug-JailPlugins] \x05CUIDADO, HAY UN PRISIONERO CAMUFLADO DE GUARDIA!!");
 						
-						new rand = GetRandomInt(1, 2);
-						switch (rand)
-						{
-							case 1:
-								{
-									SetEntityModel(client, "models/player/UEA/urban_admin/ct_urban.mdl");	
-								}
-							case 2:
-								{
-									SetEntityModel(client, "models/player/UEA/ct_admin/ct_gign.mdl");
-								}
-						}
+						SetEntityModel(client, "models/player/elis/po/police.mdl");	
 					}
 					else
 					{
