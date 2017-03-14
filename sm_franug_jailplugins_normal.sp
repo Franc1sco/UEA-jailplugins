@@ -1,3 +1,21 @@
+/*  SM Franug Jail Plugins
+ *
+ *  Copyright (C) 2017 Francisco 'Franc1sco' Garc√≠a
+ * 
+ * This program is free software: you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) 
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT 
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with 
+ * this program. If not, see http://www.gnu.org/licenses/.
+ */
+
+
 /* ATAJOS
 * Buscar: COMANDOS
 * Buscar: Final COMANDOS
@@ -362,7 +380,7 @@ public Plugin:myinfo =
 	author = "Franc1sco steam: franug and Xilver steam: donchopo",
 	description = "Modo jail especial creado por franug",
 	version = VERSION,
-	url = "http://servers-cfg.foroactivo.com/"
+	url = "http://steamcommunity.com/id/franug"
 };
 
 /* ==================== INCLUDES FRANUG ==================== */
@@ -4202,7 +4220,7 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 		}
 	}
 	
-	// Sonidos al daÒar a Goku o Ironman
+	// Sonidos al da√±ar a Goku o Ironman
 	else if (g_Ironman[victim] || g_Goku[victim])
 	{
 		new number999 = GetRandomInt(1, 5);
@@ -4240,7 +4258,7 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 			}
 		}
 		
-		// Reducir el daÒo que recibe Goku y Ironman
+		// Reducir el da√±o que recibe Goku y Ironman
 		if (g_Goku[victim])
 		{
 			damage = damage * 0.1;
@@ -4254,14 +4272,14 @@ public Action:OnTakeDamage(victim, &attacker, &inflictor, &Float:damage, &damage
 		}
 	}
 	
-	// Reducir el daÒo que recibe Batman
+	// Reducir el da√±o que recibe Batman
 	else if (g_Batman[victim])
 	{
 		damage = damage * 0.2;
 		return Plugin_Changed;
 	}
 	
-	// Sonidos al daÒar al zombie
+	// Sonidos al da√±ar al zombie
 	else if (g_Zombie[victim])
 	{
 		new number = GetRandomInt(1, 6);
@@ -4368,7 +4386,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	if (!attacker)
 		return;
 	
-	// El atacante es la vÌctima
+	// El atacante es la v√≠ctima
 	if (attacker == client)
 		return;
 		
@@ -4376,7 +4394,7 @@ public Action:PlayerDeath(Handle:event, const String:name[], bool:dontBroadcast)
 	CS_GetClientClanTag(client, tag, 32);
 	if(StrContains(tag, "*MUERTO*", false) == 0) return;
 	
-	// Obtener la mitad de los crÈditos de un Ser Especial al matarlo
+	// Obtener la mitad de los cr√©ditos de un Ser Especial al matarlo
 	if (g_cosa[client])
 	{
 		if (g_Medic[client])
